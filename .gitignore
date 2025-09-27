@@ -1,0 +1,14 @@
+# Python/Django
+__pycache__/
+*.pyc
+.db.sqlite3
+venv/
+.env
+
+# Node.js/React
+node_modules/
+dist/
+.env*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
