@@ -1,61 +1,39 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import axiosInstance from '../api/axiosInstance';
 import PageTitle from '../components/PageTitle';
 import { AuthContext } from '../context/AuthContext';
-import axiosInstance from '../api/axiosInstance';
-import { Link } from 'react-router-dom';
+import { Box, Button, TextField, Typography, Paper } from '@mui/material';
 
 function PostDetail() {
   const [post, setPost] = useState(null);
-  const [newComment, setNewComment] = useState(''); // 새 댓글 입력을 위한 state
+  const [newComment, setNewComment] = useState('');
   const { postId } = useParams();
-  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
-  // 데이터를 가져오는 함수를 분리하여 재사용하기 쉽게 만듭니다.
+  // 수정 기능을 위한 state
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentContent, setEditingCommentContent] = useState('');
+
+  // 게시글 데이터를 불러오는 함수
   const fetchPost = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/community/posts/${postId}/`);
+      const response = await axiosInstance.get(`/community/posts/${postId}/`);
       setPost(response.data);
     } catch (error) {
-      console.error('게시글을 불러오는 데 실패했습니다.', error);
+      console.error("게시글을 불러오는 데 실패했습니다.", error);
+      navigate('/community'); // 게시글이 없으면 목록으로 이동
     }
   };
 
+  // 컴포넌트가 처음 로드될 때 게시글 데이터를 불러옴
   useEffect(() => {
     fetchPost();
   }, [postId]);
 
-  // 댓글 제출 처리 함수
-  const handleCommentSubmit = async (e) => {
-    e.preventDefault();
-    // 1. localStorage에서 토큰 가져오기
-  const token = localStorage.getItem('accessToken');
-  if (!token) {
-    alert("댓글을 작성하려면 로그인이 필요합니다.");
-    return;
-  }
-  // 2. 헤더 설정
-  const config = {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  };
-
-  try {
-    // 3. post 요청에 데이터와 함께 config 전달
-    await axios.post(`http://127.0.0.1:8000/api/community/posts/${postId}/comments/`, {
-      content: newComment,
-    }, config);
-    
-    fetchPost();
-    setNewComment('');
-  } catch (error) {
-    console.error('댓글을 작성하는 데 실패했습니다.', error);
-  }
-};
-const handleDelete = async () => {
+  // 게시글 삭제 함수
+  const handleDelete = async () => {
     if (window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
       try {
         await axiosInstance.delete(`/community/posts/${postId}/`);
@@ -68,48 +46,140 @@ const handleDelete = async () => {
     }
   };
 
+  // 댓글 작성 함수
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axiosInstance.post(`/community/posts/${postId}/comments/`, {
+        content: newComment,
+      });
+      fetchPost();
+      setNewComment('');
+    } catch (error) {
+      console.error('댓글을 작성하는 데 실패했습니다.', error);
+      alert('댓글을 작성하려면 로그인이 필요합니다.');
+    }
+  };
+
+  // 댓글 삭제 함수
+  const handleCommentDelete = async (commentId) => {
+    if (window.confirm("정말 이 댓글을 삭제하시겠습니까?")) {
+      try {
+        await axiosInstance.delete(`/community/posts/${postId}/comments/${commentId}/`);
+        alert("댓글이 삭제되었습니다.");
+        fetchPost();
+      } catch (error) {
+        console.error("댓글 삭제에 실패했습니다.", error);
+        alert("댓글 삭제에 실패했습니다.");
+      }
+    }
+  };
+
+  // --- 댓글 수정 관련 함수들 ---
+  const handleEditClick = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditingCommentContent(comment.content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditingCommentContent('');
+  };
+
+  const handleUpdateSubmit = async (commentId) => {
+    try {
+      await axiosInstance.patch(`/community/posts/${postId}/comments/${commentId}/`, {
+        content: editingCommentContent,
+      });
+      alert("댓글이 수정되었습니다.");
+      setEditingCommentId(null);
+      fetchPost();
+    } catch (error) {
+      console.error("댓글 수정에 실패했습니다.", error);
+      alert("댓글 수정에 실패했습니다.");
+    }
+  };
+  // --- 여기까지 ---
+
+
   if (!post) {
     return <div>로딩 중...</div>;
   }
 
   return (
-    <div>
+    <Box>
       <PageTitle title={post.title} />
-      <p>{post.content}</p>
-      <small>작성일: {new Date(post.created_at).toLocaleDateString()}</small>
-      <hr />
-
-      {/* --- 수정/삭제 버튼 추가 --- */}
-      {/* 현재 로그인한 유저(user)와 게시글 작성자(post.author)의 pk(ID)가 같을 때만 버튼을 보여줌 */}
+      <Typography variant="body1" paragraph sx={{ whiteSpace: 'pre-wrap' }}>{post.content}</Typography>
+      <Typography variant="caption" display="block">
+        작성자: {post.author_username || '알 수 없음'} | 작성일: {new Date(post.created_at).toLocaleDateString()}
+      </Typography>
+      
       {user && user.pk === post.author && (
-        <div>
-          <Link to={`/community/${post.id}/edit`}>
-            <button>수정</button>
-          </Link>
-          <button onClick={handleDelete}>삭제</button>
-        </div>
+        <Box sx={{ mt: 2, mb: 2 }}>
+          <Button component={Link} to={`/community/${post.id}/edit`} variant="contained" sx={{ mr: 1 }}>수정</Button>
+          <Button onClick={handleDelete} variant="outlined" color="error">삭제</Button>
+        </Box>
       )}
-      {/* --- 여기까지 --- */}
 
+      <hr style={{ margin: '20px 0' }} />
+
+      <Typography variant="h5" gutterBottom>댓글</Typography>
+      
       {/* 댓글 목록 */}
-      <h3>댓글</h3>
-      {post.comments && post.comments.map(comment => (
-        <div key={comment.id}>
-          <p>{comment.content}</p>
-          <small>작성일: {new Date(comment.created_at).toLocaleDateString()}</small>
-        </div>
-      ))}
-
+      <Box sx={{ mb: 4 }}>
+        {post.comments && post.comments.map(comment => (
+          <Paper key={comment.id} sx={{ p: 2, mb: 2 }}>
+            {editingCommentId === comment.id ? (
+              // 수정 모드
+              <Box>
+                <TextField
+                  fullWidth
+                  multiline
+                  value={editingCommentContent}
+                  onChange={(e) => setEditingCommentContent(e.target.value)}
+                />
+                <Box sx={{ mt: 1 }}>
+                  <Button onClick={() => handleUpdateSubmit(comment.id)} variant="contained" size="small" sx={{ mr: 1 }}>수정 완료</Button>
+                  <Button onClick={handleCancelEdit} variant="outlined" size="small">취소</Button>
+                </Box>
+              </Box>
+            ) : (
+              // 일반 모드
+              <Box>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>{comment.author_username || '익명'}:</strong> {comment.content}
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="caption" display="block">
+                    작성일: {new Date(comment.created_at).toLocaleDateString()}
+                  </Typography>
+                  {user && user.pk === comment.author && (
+                    <Box>
+                      <Button size="small" onClick={() => handleEditClick(comment)}>수정</Button>
+                      <Button size="small" color="error" onClick={() => handleCommentDelete(comment.id)}>삭제</Button>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            )}
+          </Paper>
+        ))}
+      </Box>
+      
       {/* 댓글 작성 폼 */}
       <form onSubmit={handleCommentSubmit}>
-        <textarea
+        <TextField
+          fullWidth
+          label="댓글을 입력하세요"
+          multiline
+          rows={3}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          placeholder="댓글을 입력하세요"
+          sx={{ mb: 1 }}
         />
-        <button type="submit">댓글 작성</button>
+        <Button type="submit" variant="contained">댓글 작성</Button>
       </form>
-    </div>
+    </Box>
   );
 }
 
