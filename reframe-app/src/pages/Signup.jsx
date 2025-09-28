@@ -31,7 +31,7 @@ function Signup() {
         password1: formData.password,
         password2: formData.password2,
       };
-      await axios.post('http://127.0.0.1:8000/api/auth/registration/', signupData);
+      await axios.post('http://43.201.68.239/api/auth/registration/', signupData);
       alert("회원가입이 성공적으로 완료되었습니다! 로그인 페이지로 이동합니다.");
       navigate('/login');
     } catch (error) {

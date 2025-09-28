@@ -17,7 +17,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/auth/login/', formData);
+      const response = await axios.post('http://43.201.68.239/api/auth/login/', formData);
       login(response.data.access);
       alert("로그인에 성공했습니다!");
       navigate('/');
