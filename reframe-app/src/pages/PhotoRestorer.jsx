@@ -54,6 +54,7 @@ function PhotoRestorer() {
     <div>
       <PageTitle title="🖼️ AI 사진 복원" />
       <p>오래되거나 손상된 사진(특히 인물 사진)을 업로드하면 AI가 선명하게 복원해줍니다.</p>
+      <p>현재는 admin 계정으로만 접근 가능합니다.</p>
       
       <form onSubmit={handleSubmit}>
         <input type="file" onChange={handleFileChange} accept="image/*" />
