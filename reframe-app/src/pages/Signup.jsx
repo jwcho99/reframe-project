@@ -25,13 +25,14 @@ function Signup() {
     }
     try {
       // dj-rest-auth의 회원가입 필드 이름에 맞게 수정 (password -> password1)
+      const baseURL = import.meta.env.VITE_API_BASE_URL;
       const signupData = {
         username: formData.username,
         email: formData.email,
         password1: formData.password,
         password2: formData.password2,
       };
-      await axios.post('http://43.201.68.239/api/auth/registration/', signupData);
+      await axios.post(`${baseURL}auth/registration/`, signupData);
       alert("회원가입이 성공적으로 완료되었습니다! 로그인 페이지로 이동합니다.");
       navigate('/login');
     } catch (error) {

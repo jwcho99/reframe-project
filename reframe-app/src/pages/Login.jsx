@@ -17,7 +17,9 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://43.201.68.239/api/auth/login/', formData);
+      const baseURL = import.meta.env.VITE_API_BASE_URL;
+    // 2. 기본 주소와 세부 경로를 합쳐서 완전한 URL을 만듭니다.
+      const response = await axios.post(`${baseURL}auth/login/`, formData);
       login(response.data.access);
       alert("로그인에 성공했습니다!");
       navigate('/');
