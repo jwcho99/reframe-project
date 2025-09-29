@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import axiosInstance from '../api/axiosInstance'; // 순수 axios 대신 import
 
 export const AuthContext = createContext(null);
 
@@ -14,7 +15,7 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         try {
-          const response = await axios.get('http://127.0.0.1:8000/api/auth/user/');
+          const response = await axiosInstance.get('auth/user/');
           setUser(response.data);
         } catch (error) {
           console.error("사용자 정보 로딩 실패", error);

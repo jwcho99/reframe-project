@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 새로운 axios 인스턴스 생성
 const axiosInstance = axios.create({
-  baseURL: 'https://api.jwcho.cloud/api/', // API의 기본 URL
+  baseURL: import.meta.env.VITE_API_BASE_URL, // Vercel 변수를 읽어옴
 });
 
 // 요청 인터셉터(interceptor) 추가

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios'; // 1. axios 불러오기
 import PageTitle from '../components/PageTitle';
-
+import axiosInstance from '../api/axiosInstance';
 import Button from '@mui/material/Button';
 
 function Community() {
@@ -14,7 +14,7 @@ function Community() {
   const fetchPosts = async () => {
     try {
       // Django 서버의 게시글 목록 API에 GET 요청을 보냅니다.
-      const response = await axios.get('http://127.0.0.1:8000/api/community/posts/');
+      const response = await axiosInstance.get('community/posts/');
       // 성공적으로 데이터를 받아오면, setPosts를 이용해 posts state를 업데이트합니다.
       setPosts(response.data);
     } catch (error) {

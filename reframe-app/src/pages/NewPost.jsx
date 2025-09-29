@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import PageTitle from '../components/PageTitle';
 import { TextField, Button, Box, Stack } from '@mui/material'; // MUI 컴포넌트 import
 
+
 function NewPost() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
