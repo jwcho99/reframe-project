@@ -24,7 +24,6 @@ function Signup() {
       return;
     }
     try {
-      // dj-rest-auth의 회원가입 필드 이름에 맞게 수정 (password -> password1)
       const baseURL = import.meta.env.VITE_API_BASE_URL;
       const signupData = {
         username: formData.username,
