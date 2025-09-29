@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 새로운 axios 인스턴스 생성
 const axiosInstance = axios.create({
-  baseURL: 'http://43.201.68.239/api/', // API의 기본 URL
+  baseURL: 'https://api.jwcho.cloud/api/', // API의 기본 URL
 });
 
 // 요청 인터셉터(interceptor) 추가

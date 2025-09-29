@@ -31,7 +31,7 @@ function Signup() {
         password1: formData.password,
         password2: formData.password2,
       };
-      await axios.post(`${baseURL}auth/registration/`, signupData);
+      await axios.post('https://api.jwcho.cloud/api/auth/registration/', signupData);
       alert("회원가입이 성공적으로 완료되었습니다! 로그인 페이지로 이동합니다.");
       navigate('/login');
     } catch (error) {
