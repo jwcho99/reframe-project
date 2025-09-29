@@ -18,7 +18,7 @@ function Login() {
     e.preventDefault();
     try {
       const baseURL = import.meta.env.VITE_API_BASE_URL;
-      const response = await axios.post(`${baseURL}auth/login/`, formData);
+      const response = await axios.post(`${baseURL}/auth/login/`, formData);
       login(response.data.access);
       alert("로그인에 성공했습니다!");
       navigate('/');
