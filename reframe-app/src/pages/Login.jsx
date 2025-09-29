@@ -17,7 +17,8 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('https://api.jwcho.cloud/api/auth/login/', formData);
+      const baseURL = import.meta.env.VITE_API_BASE_URL;
+      const response = await axios.post(`${baseURL}auth/login/`, formData);
       login(response.data.access);
       alert("로그인에 성공했습니다!");
       navigate('/');
