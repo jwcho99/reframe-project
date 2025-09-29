@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axiosInstance from '../api/axiosInstance';
+import axiosInstance from '../api/axiosInstance'; // axios instance 사용
 import PageTitle from '../components/PageTitle';
 import { TextField, Button, Box, Stack } from '@mui/material';
 
