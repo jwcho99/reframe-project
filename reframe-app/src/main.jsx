@@ -23,17 +23,17 @@ const router = createBrowserRouter([
     children: [
       // 누구나 접근 가능한 페이지들
       { path: '/', element: <Home /> },
-      { path: '/signup', element: <Signup /> },
+      //{ path: '/signup', element: <Signup /> },
       { path: '/login', element: <Login /> },
       { path: '/community', element: <Community /> },
       { path: '/community/:postId', element: <PostDetail /> },
       { path: '/roadmap', element: <RoadmapGenerator /> },
+      { path: '/community/new', element: <NewPost /> },
 
       // --- 로그인이 필요한 페이지들을 ProtectedRoute로 감싸줍니다 ---
       {
         element: <ProtectedRoute />,
         children: [
-          { path: '/community/new', element: <NewPost /> },
           { path: '/community/:postId/edit', element: <EditPost /> },
           { path: '/photo', element: <PhotoRestorer /> },
         ]

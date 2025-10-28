@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
+import axios from 'axios';
 import PageTitle from '../components/PageTitle';
 import { AuthContext } from '../context/AuthContext';
 import { Box, Button, TextField, Typography, Paper } from '@mui/material';
@@ -49,15 +50,24 @@ function PostDetail() {
   // 댓글 작성 함수
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
+    const commentData = { content: newComment };
+    // API 엔드포인트 경로 (상대 경로로 사용 가능하나, axios 사용 시 절대 경로 필요)
+    const apiEndpoint = `/community/posts/${postId}/comments/`;
+
     try {
-      await axiosInstance.post(`/community/posts/${postId}/comments/`, {
-        content: newComment,
-      });
-      fetchPost();
-      setNewComment('');
+      if (user) {
+        // 로그인 상태: axiosInstance 사용 (자동으로 토큰 첨부)
+        await axiosInstance.post(apiEndpoint, commentData);
+      } else {
+        // 로그아웃 상태: 순수 axios 사용
+        const baseURL = import.meta.env.VITE_API_BASE_URL;
+        await axios.post(`${baseURL}${apiEndpoint}`, commentData);
+      }
+      fetchPost(); // 댓글 목록 새로고침
+      setNewComment(''); // 입력창 비우기
     } catch (error) {
       console.error('댓글을 작성하는 데 실패했습니다.', error);
-      alert('댓글을 작성하려면 로그인이 필요합니다.');
+      alert('댓글 작성 중 오류가 발생했습니다.');
     }
   };
 
@@ -114,9 +124,14 @@ function PostDetail() {
         작성자: {post.author_username || '알 수 없음'} | 작성일: {new Date(post.created_at).toLocaleDateString()}
       </Typography>
       
-      {user && user.pk === post.author && (
+      {/* 게시글 수정/삭제 버튼: 본인 또는 관리자 */}
+      {user && (user.pk === post.author || user.is_staff || user.is_superuser) && (
         <Box sx={{ mt: 2, mb: 2 }}>
-          <Button component={Link} to={`/community/${post.id}/edit`} variant="contained" sx={{ mr: 1 }}>수정</Button>
+          {/* 수정 버튼은 본인만 */}
+          {user.pk === post.author && (
+             <Button component={Link} to={`/community/${post.id}/edit`} variant="contained" sx={{ mr: 1 }}>수정</Button>
+          )}
+          {/* 삭제 버튼은 본인 또는 관리자 */}
           <Button onClick={handleDelete} variant="outlined" color="error">삭제</Button>
         </Box>
       )}
@@ -153,9 +168,15 @@ function PostDetail() {
                   <Typography variant="caption" display="block">
                     작성일: {new Date(comment.created_at).toLocaleDateString()}
                   </Typography>
-                  {user && user.pk === comment.author && (
+                  
+                  {/* 댓글 수정/삭제 버튼: 본인 또는 관리자 */}
+                  {user && (user.pk === comment.author || user.is_staff || user.is_superuser) && ( // 로그인 상태이고 (본인 또는 관리자)일 때 버튼 영역 표시
                     <Box>
-                      <Button size="small" onClick={() => handleEditClick(comment)}>수정</Button>
+                      {/* 수정 버튼: 본인 댓글일 때만 표시 */}
+                      {user.pk === comment.author && (
+                        <Button size="small" onClick={() => handleEditClick(comment)}>수정</Button>
+                      )}
+                      {/* 삭제 버튼: 관리자 또는 본인 댓글일 때 표시 */}
                       <Button size="small" color="error" onClick={() => handleCommentDelete(comment.id)}>삭제</Button>
                     </Box>
                   )}
@@ -164,6 +185,10 @@ function PostDetail() {
             )}
           </Paper>
         ))}
+        {/* 댓글이 없을 경우 메시지 표시 */}
+        {(!post.comments || post.comments.length === 0) && (
+            <Typography variant="body2" color="text.secondary">아직 댓글이 없습니다.</Typography>
+        )}
       </Box>
       
       {/* 댓글 작성 폼 */}

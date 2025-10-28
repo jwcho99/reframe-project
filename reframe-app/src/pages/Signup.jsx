@@ -37,6 +37,7 @@ function Signup() {
     } catch (error) {
       console.error('회원가입에 실패했습니다.', error.response.data);
       alert("회원가입에 실패했습니다. (콘솔을 확인하세요)");
+      
     }
   };
 
