@@ -1,12 +1,13 @@
 from django.urls import path, include
 # DefaultRouter 대신 NestedSimpleRouter를 사용합니다.
 from rest_framework_nested import routers
-from .views import PostViewSet, CommentViewSet, PhotoRestoreAPIView
+from .views import PostViewSet, CommentViewSet, PhotoRestoreAPIView, AdminFileViewSet
 
 # 1단계: 기본 라우터 생성
 # 이 라우터는 /posts/ 주소를 담당합니다.
 router = routers.SimpleRouter()
 router.register('posts', PostViewSet)
+router.register('admin-files', AdminFileViewSet)
 
 # 2단계: 중첩 라우터 생성
 # 이 라우터는 /posts/{post_pk}/comments/ 주소를 담당합니다.
