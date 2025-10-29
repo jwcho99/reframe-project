@@ -31,6 +31,9 @@ function Header() {
           <Button color="inherit" component={RouterLink} to="/photo">
             AI 사진 복원
           </Button>
+          <Button color="inherit" component={RouterLink} to="/admin/files">
+              파일 관리
+          </Button>
         </Box>
 
         {/* 로그인/로그아웃 버튼 */}

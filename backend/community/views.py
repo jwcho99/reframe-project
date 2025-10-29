@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -14,25 +14,32 @@ from .serializers import PostSerializer, CommentSerializer
 from .permissions import IsOwnerOrReadOnly
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.objects.all().order_by('-created_at') # 최신순 정렬 추가
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [AllowAny] # AllowAny로 변경
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        # 사용자가 인증되었을 경우(로그인 상태)에만 author를 저장
+        if self.request.user.is_authenticated:
+            serializer.save(author=self.request.user)
+        else:
+            serializer.save() # 익명 사용자는 author 없이 저장
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
-        return Comment.objects.filter(post_id=self.kwargs['post_pk'])
+        return Comment.objects.filter(post_id=self.kwargs['post_pk']).order_by('created_at') # 오래된 순 정렬
 
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [AllowAny] # AllowAny로 변경
 
     def perform_create(self, serializer):
         post = Post.objects.get(pk=self.kwargs['post_pk'])
-        serializer.save(author=self.request.user, post=post)
-
+        # 사용자가 인증되었을 경우에만 author를 저장
+        if self.request.user.is_authenticated:
+            serializer.save(author=self.request.user, post=post)
+        else:
+            serializer.save(post=post) # 익명 사용자는 post 정보만 저장
 
 class PhotoRestoreAPIView(APIView):
     permission_classes = [IsAdminUser]
@@ -70,26 +77,4 @@ class PhotoRestoreAPIView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    # permission_classes에 IsOwnerOrReadOnly를 추가합니다.
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-class CommentViewSet(viewsets.ModelViewSet):
-    def get_queryset(self):
-        return Comment.objects.filter(post_id=self.kwargs['post_pk'])
-
-    serializer_class = CommentSerializer
-    # permission_classes에 IsOwnerOrReadOnly를 추가합니다.
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-
-    def perform_create(self, serializer):
-        post = Post.objects.get(pk=self.kwargs['post_pk'])
-        serializer.save(author=self.request.user, post=post)
 

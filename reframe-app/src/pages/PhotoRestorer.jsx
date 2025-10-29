@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import PageTitle from '../components/PageTitle';
 import axiosInstance from '../api/axiosInstance'; // 우리가 만든 axiosInstance 사용
+import { Box, Button, CircularProgress, Typography, Stack, Paper } from '@mui/material';
+import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slider';
+
 
 function PhotoRestorer() {
   const [selectedFile, setSelectedFile] = useState(null); // 선택한 파일 객체
@@ -51,33 +54,59 @@ function PhotoRestorer() {
   };
 
   return (
-    <div>
+    <Box sx={{ mt: 4, mb: 4 }}> {/* 페이지 상하 여백 추가 */}
       <PageTitle title="🖼️ AI 사진 복원" />
-      <p>오래되거나 손상된 사진(특히 인물 사진)을 업로드하면 AI가 선명하게 복원해줍니다.</p>
-      <p>현재는 admin 계정으로만 접근 가능합니다.</p>
-      
+      <Typography variant="body1" color="text.secondary" paragraph> {/* 설명 텍스트 스타일 */}
+        오래되거나 손상된 사진(특히 인물 사진)을 업로드하면 AI가 선명하게 복원해줍니다.
+      </Typography>
+
       <form onSubmit={handleSubmit}>
-        <input type="file" onChange={handleFileChange} accept="image/*" />
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? '복원 중...' : '복원하기'}
-        </button>
+        <Stack direction="row" spacing={2} sx={{ mb: 4 }}> {/* 버튼들을 가로로 배치하고 간격 추가 */}
+          <Button variant="contained" component="label" disabled={isLoading}>
+            이미지 선택
+            <input type="file" hidden onChange={handleFileChange} accept="image/*" />
+          </Button>
+          <Button type="submit" variant="contained" color="primary" disabled={isLoading || !selectedFile}>
+            {isLoading ? '복원 중...' : '복원하기'}
+          </Button>
+        </Stack>
       </form>
 
-      <div style={{ display: 'flex', marginTop: '20px' }}>
-        {previewImage && (
-          <div style={{ marginRight: '10px' }}>
-            <h3>원본 이미지</h3>
-            <img src={previewImage} alt="Original" width="300" />
-          </div>
-        )}
-        {restoredImage && (
-          <div>
-            <h3>복원된 이미지</h3>
-            <img src={restoredImage} alt="Restored" width="300" />
-          </div>
-        )}
-      </div>
-    </div>
+      {/* 로딩 상태 표시 */}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4, flexDirection: 'column' }}> {/* 세로 중앙 정렬 */}
+          <CircularProgress />
+          <Typography sx={{ mt: 2 }}>AI가 이미지를 복원하고 있습니다...</Typography>
+        </Box>
+      )}
+
+      {/* 결과 비교 슬라이더 */}
+      {previewImage && restoredImage && !isLoading && (
+        <Paper elevation={3} sx={{ mt: 4, p: 3, maxWidth: '800px', mx: 'auto' }}> {/* 카드 형태 배경 추가 */}
+          <Typography variant="h6" gutterBottom align="center"> {/* 중앙 정렬 */}
+            결과 비교 (슬라이더를 움직여보세요)
+          </Typography>
+          <ReactCompareSlider
+            itemOne={<ReactCompareSliderImage src={previewImage} alt="Original Image" style={{ objectFit: 'contain' }} />}
+            itemTwo={<ReactCompareSliderImage src={restoredImage} alt="Restored Image" style={{ objectFit: 'contain' }} />}
+            style={{ width: '100%', height: 'auto', aspectRatio: '16 / 9' }} // 가로세로 비율 조정 (선택 사항)
+          />
+          {/* 전체 화면 및 다운로드 버튼 (기능은 추후 추가) */}
+          <Stack direction="row" spacing={1} sx={{ mt: 2, justifyContent: 'center' }}>
+            <Button size="small" variant="outlined">전체 화면</Button>
+            <Button size="small" variant="outlined" href={restoredImage} download="restored_image.png">다운로드</Button> {/* 다운로드 링크 추가 */}
+          </Stack>
+        </Paper>
+      )}
+
+      {/* 원본 미리보기 (복원 전) */}
+      {previewImage && !restoredImage && !isLoading && (
+         <Box sx={{ mt: 4, textAlign: 'center' }}> {/* 중앙 정렬 */}
+             <Typography variant="h6" gutterBottom>원본 이미지 미리보기</Typography>
+             <img src={previewImage} alt="Original Preview" style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }} /> {/* 크기 및 비율 조절 */}
+         </Box>
+      )}
+    </Box>
   );
 }
 

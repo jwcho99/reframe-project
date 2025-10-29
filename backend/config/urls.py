@@ -16,6 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings         # settings import 추가
+from django.conf.urls.static import static # static import 추가
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,5 +26,11 @@ urlpatterns = [
     # dj-rest-auth가 제공하는 기본 인증 URL (로그인, 로그아웃 등)
     path('api/auth/', include('dj_rest_auth.urls')),
     # dj-rest-auth가 제공하는 회원가입 URL
-    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+    # path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
 ]
+
+
+# 개발 환경에서 미디어 파일 서빙을 위한 설정 추가
+if settings.DEBUG: # 실제 운영 환경에서는 Nginx가 처리하도록 설정해야 함
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+#  운영 환경(DEBUG=False)에서는 Nginx 설정을 추가해야 합니다 (다음 단계에서 설명)

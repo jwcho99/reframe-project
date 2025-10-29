@@ -23,7 +23,7 @@ class Post(models.Model):
     # 작성자: User 모델과 '다대일(N:1)' 관계를 설정합니다.
     # on_delete=models.CASCADE는 연결된 User가 삭제될 때, 해당 User가 쓴 게시글도 함께 삭제된다는 의미입니다.
     # author 필드에 null=True, blank=True를 추가하여 비워둘 수 있도록 허용합니다.
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
 
     def __str__(self):
@@ -44,7 +44,7 @@ class Comment(models.Model):
     # 수정일
     updated_at = models.DateTimeField(auto_now=True)
 
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
 
     def __str__(self):

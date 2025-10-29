@@ -9,11 +9,12 @@ import RoadmapGenerator from './pages/RoadmapGenerator.jsx';
 import Community from './pages/Community.jsx';
 import NewPost from './pages/NewPost.jsx';
 import PostDetail from './pages/PostDetail.jsx'; // 상세 페이지 컴포넌트 불러오기
-import Signup from './pages/Signup.jsx';
+// import Signup from './pages/Signup.jsx';
 import Login from './pages/Login.jsx';
 import EditPost from './pages/EditPost.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx'; // ProtectedRoute 컴포넌트 불러오기
 import { AuthProvider } from './context/AuthContext.jsx'; // AuthProvider 불러오기
+import AdminFiles from './pages/AdminFiles.jsx'; // 관리자 파일 관리 페이지 불러오기
 
 // 라우터 설정: 어떤 경로(path)에 어떤 컴포넌트(element)를 보여줄지 정의
 const router = createBrowserRouter([
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
         children: [
           { path: '/community/:postId/edit', element: <EditPost /> },
           { path: '/photo', element: <PhotoRestorer /> },
+          { path: '/admin/files', element: <AdminFiles /> }, // <-- 관리자 파일 경로 추가
         ]
       }
     ],

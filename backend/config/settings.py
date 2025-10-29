@@ -41,7 +41,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['34.50.44.190', 'api.jwcho.cloud','127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     'allauth', # dj-rest-auth에 필요
     'allauth.account', # dj-rest-auth에 필요
     'allauth.socialaccount', # dj-rest-auth에 필요
-    'dj_rest_auth.registration', # 회원가입 기능용
+    #'dj_rest_auth.registration', # 회원가입 기능용
 ]
 
 MIDDLEWARE = [
@@ -100,10 +100,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db(),  # .env 파일의 DATABASE_URL 환경 변수를 사용하여 데이터베이스 설정
 }
 
 
@@ -158,14 +155,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173', # React 개발 서버 주소
     'http://127.0.0.1:5173', # React 개발 서버 주소 (다른 형태)
+    'https://reframe-project.vercel.app',
+    'https://jwcho.cloud',
+    'https://www.jwcho.cloud',
 ]
 
 
 
 # 이메일 인증을 사용하지 않을 것이므로 'none'으로 설정
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+#ACCOUNT_EMAIL_VERIFICATION = 'none'
 # 이메일 필드를 필수로 요구하지 않음
-ACCOUNT_EMAIL_REQUIRED = False
+#ACCOUNT_EMAIL_REQUIRED = False
 
 # DRF가 기본적으로 JWT 인증을 사용하도록 설정
 REST_FRAMEWORK = {
@@ -184,6 +184,7 @@ REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'my-app-auth', # 쿠키 이름 설정
     'JWT_AUTH_REFRESH_COOKIE': 'my-refresh-token', # 리프레시 토큰 쿠키 이름 설정
+    'USER_DETAILS_SERIALIZER': 'community.serializers.CustomUserDetailsSerializer',
 }
 
 # 사이트 ID 설정 (allauth에 필요)
@@ -193,3 +194,8 @@ SITE_ID = 1
 
 # .env 파일에서 REPLICATE_API_TOKEN 변수를 읽어옵니다.
 REPLICATE_API_TOKEN = env('REPLICATE_API_TOKEN')
+
+# 업로드된 파일이 저장될 실제 경로 (프로젝트 루트 아래 media 폴더)
+MEDIA_ROOT = BASE_DIR / 'media'
+# 브라우저에서 파일에 접근할 때 사용할 URL 경로 (예: /media/admin_files/example.jpg)
+MEDIA_URL = '/media/'
