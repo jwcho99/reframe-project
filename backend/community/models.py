@@ -49,3 +49,18 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'{self.author} :: {self.content}'
+
+
+class AdminFile(models.Model):
+    """
+    관리자 전용 파일 업로드 모델
+    """
+    description = models.CharField(max_length=255, blank=True)
+    # upload_to는 파일이 저장될 media 폴더 하위 경로
+    file = models.FileField(upload_to='admin_files/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploader = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        # 파일명만 반환하도록 수정 (os.path.basename 사용)
+        return os.path.basename(self.file.name)

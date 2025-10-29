@@ -9,8 +9,8 @@ import os
 import replicate
 import base64
 
-from .models import Post, Comment
-from .serializers import PostSerializer, CommentSerializer
+from .models import Post, Comment, AdminFile
+from .serializers import PostSerializer, CommentSerializer, AdminFileSerializer
 from .permissions import IsOwnerOrReadOnly
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -78,3 +78,11 @@ class PhotoRestoreAPIView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class AdminFileViewSet(viewsets.ModelViewSet):
+    queryset = AdminFile.objects.all().order_by('-uploaded_at')
+    serializer_class = AdminFileSerializer
+    permission_classes = [IsAdminUser]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def perform_create(self, serializer):
+        serializer.save(uploader=self.request.user)
