@@ -4,7 +4,7 @@ import axiosInstance from '../api/axiosInstance';
 import axios from 'axios';
 import PageTitle from '../components/PageTitle';
 import { AuthContext } from '../context/AuthContext';
-import { Box, Button, TextField, Typography, Paper } from '@mui/material';
+import { Box, Button, TextField, Typography, Paper, Stack} from '@mui/material';
 
 function PostDetail() {
   const [post, setPost] = useState(null);
@@ -16,6 +16,8 @@ function PostDetail() {
   // 수정 기능을 위한 state
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingCommentContent, setEditingCommentContent] = useState('');
+
+  const [commentNickname, setCommentNickname] = useState(''); // 댓글 닉네임 state 추가
 
   // 게시글 데이터를 불러오는 함수
   const fetchPost = async () => {
@@ -50,7 +52,13 @@ function PostDetail() {
   // 댓글 작성 함수
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
-    const commentData = { content: newComment };
+
+    if (!newComment.trim()) { 
+      alert("댓글 내용을 입력해주세요.");
+      return; // 함수 종료
+    }
+
+    const commentData = { content: newComment, nickname: user ? null : commentNickname };
     // API 엔드포인트 경로 (상대 경로로 사용 가능하나, axios 사용 시 절대 경로 필요)
     const apiEndpoint = `/community/posts/${postId}/comments/`;
 
@@ -65,6 +73,7 @@ function PostDetail() {
       }
       fetchPost(); // 댓글 목록 새로고침
       setNewComment(''); // 입력창 비우기
+      setCommentNickname(''); // 닉네임 초기화
     } catch (error) {
       console.error('댓글을 작성하는 데 실패했습니다.', error);
       alert('댓글 작성 중 오류가 발생했습니다.');
@@ -121,7 +130,7 @@ function PostDetail() {
       <PageTitle title={post.title} />
       <Typography variant="body1" paragraph sx={{ whiteSpace: 'pre-wrap' }}>{post.content}</Typography>
       <Typography variant="caption" display="block">
-        작성자: {post.author_username || '알 수 없음'} | 작성일: {new Date(post.created_at).toLocaleDateString()}
+        작성자: {post.display_name || '익명'} | 작성일: {new Date(post.created_at).toLocaleDateString()}
       </Typography>
       
       {/* 게시글 수정/삭제 버튼: 본인 또는 관리자 */}
@@ -162,7 +171,7 @@ function PostDetail() {
               // 일반 모드
               <Box>
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>{comment.author_username || '익명'}:</strong> {comment.content}
+                  <strong>{comment.display_name || '익명'}:</strong> {comment.content}
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="caption" display="block">
@@ -193,16 +202,27 @@ function PostDetail() {
       
       {/* 댓글 작성 폼 */}
       <form onSubmit={handleCommentSubmit}>
-        <TextField
-          fullWidth
-          label="댓글을 입력하세요"
-          multiline
-          rows={3}
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          sx={{ mb: 1 }}
-        />
-        <Button type="submit" variant="contained">댓글 작성</Button>
+        <Stack spacing={1} sx={{ mt: 2 }}> {/* Stack 추가 */}
+            {/* 닉네임 입력 (로그아웃 상태일 때만) */}
+            {!user && (
+                <TextField
+                    label="닉네임 (선택 사항, 기본값: 익명)"
+                    size="small" // 작은 크기
+                    value={commentNickname}
+                    onChange={(e) => setCommentNickname(e.target.value)}
+                />
+            )}
+            <TextField
+              fullWidth
+              label="댓글을 입력하세요"
+              multiline
+              rows={3}
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              sx={{ mb: 1 }}
+            />
+            <Button type="submit" variant="contained">댓글 작성</Button>
+        </Stack>
       </form>
     </Box>
   );

@@ -12,8 +12,9 @@ function NewPost() {
   const [content, setContent] = useState('');
   const navigate = useNavigate();
   const { user } = useContext(AuthContext); // 로그인 상태 가져오기
+  const [nickname, setNickname] = useState('');
 
-  console.log('NewPost user state:', user);
+  // console.log('NewPost user state:', user);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,8 +26,8 @@ function NewPost() {
       navigate('/login');
       return;
     } */
-    const postData = { title, content };
-    const apiEndpoint = '/community/posts/'; // 상대 경로 사용
+    const postData = { title, content, nickname: user ? null : nickname }; // 로그인 시 null
+    const apiEndpoint = '/community/posts/';
 
 
     try {
@@ -54,6 +55,15 @@ function NewPost() {
       <PageTitle title="📝 새 글 작성하기" />
       <form onSubmit={handleSubmit}>
         <Stack spacing={2}> {/* 컴포넌트 간 간격 추가 */}
+          {!user && (
+            <TextField
+              label="닉네임 (선택 사항, 기본값: 익명)"
+              variant="outlined"
+              fullWidth
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+            />
+          )}
           <TextField
             label="제목"
             variant="outlined"

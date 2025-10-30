@@ -1,8 +1,7 @@
 import React, { useContext } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { AppBar, Toolbar, Typography, Button, Box, Link } from '@mui/material';
-
+import { AppBar, Toolbar, Typography, Button, Box, Link, Divider, Tooltip } from '@mui/material'; // Divider 추가
 function Header() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -12,6 +11,11 @@ function Header() {
     alert('로그아웃 되었습니다.');
     navigate('/');
   };
+
+
+  const isAdmin = user && (user.is_staff || user.is_superuser);
+
+
 
   return (
     <AppBar position="static">
@@ -23,17 +27,57 @@ function Header() {
           </Link>
         </Typography>
 
-        {/* 메뉴 링크들 */}
+        {/* 일반 메뉴 */}
         <Box>
           <Button color="inherit" component={RouterLink} to="/community">
             커뮤니티
           </Button>
-          <Button color="inherit" component={RouterLink} to="/photo">
-            AI 사진 복원
-          </Button>
-          <Button color="inherit" component={RouterLink} to="/admin/files">
-              파일 관리
-          </Button>
+        </Box>
+
+        {/* --- 관리자 전용 메뉴 영역 --- */}
+        {/* 구분선은 항상 표시 */}
+        <Divider orientation="vertical" flexItem sx={{ mx: 1.5, borderColor: 'rgba(20, 17, 17, 0.5 )' }} />
+        <Box>
+          {/* Tooltip: 마우스를 올렸을 때 "관리자 전용" 안내 표시 */}
+          <Tooltip title={!isAdmin ? "관리자 전용 기능입니다." : ""}>
+            {/* Span으로 감싸는 이유: disabled 상태의 버튼에는 Tooltip이 직접 적용되지 않을 수 있음 */}
+            <span>
+              <Button
+                color="inherit"
+                component={RouterLink}
+                to="/photo"
+                disabled={!isAdmin}
+                // sx prop을 아래와 같이 수정합니다.
+                sx={{
+                  // '&.Mui-disabled'는 '이 컴포넌트가 disabled 상태일 때'를 의미합니다.
+                  '&.Mui-disabled': {
+                    color: 'rgba(255, 255, 255, 0.5)' // 흰색에 50% 투명도를 줍니다.
+                  }
+                }}
+              >
+                AI 사진 복원
+              </Button>
+            </span>
+          </Tooltip>
+
+          <Tooltip title={!isAdmin ? "관리자 전용 기능입니다." : ""}>
+            <span>
+              <Button
+                color="inherit"
+                component={RouterLink}
+                to="/admin/files"
+                disabled={!isAdmin}
+                // 여기도 동일하게 수정합니다.
+                sx={{
+                  '&.Mui-disabled': {
+                    color: 'rgba(255, 255, 255, 0.5)'
+                  }
+                }}
+              >
+                파일 관리
+              </Button>
+            </span>
+          </Tooltip>
         </Box>
 
         {/* 로그인/로그아웃 버튼 */}
@@ -50,7 +94,7 @@ function Header() {
           ) : (
             <>
               <Button color="inherit" component={RouterLink} to="/login">
-                로그인
+                관리자 로그인
               </Button>
 
               {/* <Button color="inherit" variant="outlined" component={RouterLink} to="/signup">
