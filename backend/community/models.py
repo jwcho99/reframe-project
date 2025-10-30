@@ -25,6 +25,8 @@ class Post(models.Model):
     # author 필드에 null=True, blank=True를 추가하여 비워둘 수 있도록 허용합니다.
     author = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
+    nickname = models.CharField(max_length=50, null=True, blank=True, default='익명')
+
 
     def __str__(self):
         # 나중에 Django 관리자 페이지에서 게시글 제목으로 보이게 해줍니다.
@@ -47,8 +49,12 @@ class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
 
+    nickname = models.CharField(max_length=50, null=True, blank=True, default='익명')
+
     def __str__(self):
-        return f'{self.author} :: {self.content}'
+        # 닉네임도 표시하도록 수정 (선택 사항)
+        display_name = self.author.username if self.author else self.nickname
+        return f'{display_name} :: {self.content[:20]}' # 내용 일부만 표시
 
 
 class AdminFile(models.Model):

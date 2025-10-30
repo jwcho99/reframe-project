@@ -19,11 +19,17 @@ class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny] # AllowAny로 변경
 
     def perform_create(self, serializer):
-        # 사용자가 인증되었을 경우(로그인 상태)에만 author를 저장
+        nickname = None
+        if not self.request.user.is_authenticated:
+            # 요청 데이터에서 nickname 가져오기 (없으면 None)
+            nickname = self.request.data.get('nickname')
+            # 닉네임이 비어있으면 기본값('익명')이 저장되도록 None 유지
+
         if self.request.user.is_authenticated:
             serializer.save(author=self.request.user)
         else:
-            serializer.save() # 익명 사용자는 author 없이 저장
+            # nickname 값이 있으면 함께 저장
+            serializer.save(nickname=nickname if nickname else '익명') # 빈 문자열 방지
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -35,11 +41,14 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         post = Post.objects.get(pk=self.kwargs['post_pk'])
-        # 사용자가 인증되었을 경우에만 author를 저장
+        nickname = None
+        if not self.request.user.is_authenticated:
+            nickname = self.request.data.get('nickname')
+
         if self.request.user.is_authenticated:
             serializer.save(author=self.request.user, post=post)
         else:
-            serializer.save(post=post) # 익명 사용자는 post 정보만 저장
+            serializer.save(post=post, nickname=nickname if nickname else '익명')
 
 class PhotoRestoreAPIView(APIView):
     permission_classes = [IsAdminUser]
