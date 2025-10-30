@@ -33,6 +33,26 @@ function AdminFiles() {
         fetchFiles();
     }, []);
 
+    const handleDownload = async (fileUrl, fileName) => {
+        try {
+            const response = await fetch(fileUrl);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.setAttribute('download', fileName || 'download'); // 파일 이름 지정
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error("다운로드 중 오류 발생:", error);
+            alert("파일 다운로드 중 오류가 발생했습니다.");
+            // 실패 시 새 탭에서 열기
+            window.open(fileUrl, '_blank');
+        }
+    };
+
     // 파일 선택 처리
     const handleFileChange = (e) => {
         setSelectedFile(e.target.files[0]);
@@ -128,7 +148,7 @@ function AdminFiles() {
                             secondaryAction={ // 오른쪽에 버튼 추가
                                 <>
                                     {/* 다운로드 버튼: 파일 URL로 직접 연결 */}
-                                    <IconButton edge="end" aria-label="download" href={file.file} target="_blank" download={getFileNameFromUrl(file.file)}>
+                                    <IconButton edge="end" aria-label="download" onClick={() => handleDownload(file.file, fileName)}>
                                         <DownloadIcon />
                                     </IconButton>
                                     {/* 삭제 버튼 */}
