@@ -199,3 +199,8 @@ REPLICATE_API_TOKEN = env('REPLICATE_API_TOKEN')
 MEDIA_ROOT = BASE_DIR / 'media'
 # 브라우저에서 파일에 접근할 때 사용할 URL 경로 (예: /media/admin_files/example.jpg)
 MEDIA_URL = '/media/'
+
+
+# config/settings.py (파일 맨 아래)
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static_root'
