@@ -24,7 +24,8 @@ function Login() {
     try {
       // 순수 axios 사용 (인증 불필요 요청)
       const baseURL = import.meta.env.VITE_API_BASE_URL;
-      const response = await axios.post(`${baseURL}auth/login/`, formData);
+      const url = baseURL.endsWith('/') ? `${baseURL}auth/login/` : `${baseURL}/auth/login/`;
+      const response = await axios.post(url, formData);
       
       login(response.data.access);
       // alert 대신 부드러운 이동 처리 (원한다면 스낵바 추가 가능)
