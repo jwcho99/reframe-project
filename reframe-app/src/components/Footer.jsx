@@ -1,28 +1,36 @@
 import React from 'react';
-import { Box, Typography, Link } from '@mui/material';
+import { Box, Typography, Link, Container, Stack } from '@mui/material';
+import GitHubIcon from '@mui/icons-material/GitHub';
 
 function Footer() {
   return (
     <Box 
+      component="footer" 
       sx={{ 
-        py: 3, // padding-top, padding-bottom
-        px: 2, // padding-left, padding-right
-        mt: 'auto', // 내용이 적을 때 푸터를 아래로 밀어냄
-        backgroundColor: (theme) =>
-          theme.palette.mode === 'light'
-            ? theme.palette.grey[200]
-            : theme.palette.grey[800],
+        py: 4, 
+        px: 2, 
+        mt: 'auto', 
+        backgroundColor: (theme) => theme.palette.background.default,
+        borderTop: '1px solid',
+        borderColor: 'divider'
       }}
-      component="footer"
     >
-      <Typography variant="body2" color="text.secondary" align="center">
-        {'Copyright © '}
-        <Link color="inherit" href="https://your-github-link.com/">
-          Re:Frame Project
-        </Link>{' '}
-        {new Date().getFullYear()}
-        {'.'}
-      </Typography>
+      <Container maxWidth="lg">
+        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2}>
+          <Typography variant="body2" color="text.secondary">
+            © {new Date().getFullYear()} <strong>Re:Frame Project</strong>. All rights reserved.
+          </Typography>
+          
+          <Stack direction="row" spacing={3}>
+             <Link href="#" color="inherit" underline="hover" variant="body2">
+                About
+             </Link>
+             <Link href="https://github.com/jwcho99/reframe-project" target="_blank" color="inherit" underline="hover" variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <GitHubIcon fontSize="small" /> GitHub
+             </Link>
+          </Stack>
+        </Stack>
+      </Container>
     </Box>
   );
 }

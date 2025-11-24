@@ -61,7 +61,8 @@ function PostDetail() {
         try {
             if (user) await axiosInstance.post(apiEndpoint, commentData);
             else {
-                const baseURL = import.meta.env.VITE_API_BASE_URL;
+                const envBaseURL = import.meta.env.VITE_API_BASE_URL;
+                const baseURL = envBaseURL.endsWith('/') ? envBaseURL : `${envBaseURL}/`;
                 await axios.post(`${baseURL}${apiEndpoint}`, commentData);
             }
             fetchPost();
