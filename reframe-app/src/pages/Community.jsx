@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link as RouterLink } from 'react-router-dom'; // RouterLink로 이름 변경
+import { Link as RouterLink } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import PageTitle from '../components/PageTitle';
 import { AuthContext } from '../context/AuthContext';
 
-// MUI 컴포넌트 import
+// MUI 컴포넌트
 import {
     Box,
     Button,
@@ -17,17 +17,23 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    CircularProgress, // 로딩 스피너
-    Link // MUI Link (제목에 사용)
+    CircularProgress,
+    Link,
+    Stack,
+    Chip,
+    useTheme,
+    Container
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded'; // 둥근 아이콘으로 교체
+import EditRoundedIcon from '@mui/icons-material/EditRounded'; // 아이콘 추가
+import CreateRoundedIcon from '@mui/icons-material/CreateRounded'; // 아이콘 추가
 
 function Community() {
     const [posts, setPosts] = useState([]);
-    const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
+    const [isLoading, setIsLoading] = useState(true);
     const { user } = useContext(AuthContext);
+    const theme = useTheme();
 
-    // 관리자인지 확인하는 변수
     const isAdmin = user && (user.is_staff || user.is_superuser);
 
     const fetchPosts = async () => {
@@ -40,7 +46,7 @@ function Community() {
             console.error("게시글을 불러오는 데 실패했습니다.", error);
             setPosts([]);
         } finally {
-            setIsLoading(false); // 로딩 종료
+            setIsLoading(false);
         }
     };
 
@@ -52,8 +58,8 @@ function Community() {
         if (window.confirm("정말 이 게시글을 삭제하시겠습니까? (관리자 권한)")) {
             try {
                 await axiosInstance.delete(`/community/posts/${postId}/`);
-                alert("게시글이 삭제되었습니다.");
-                fetchPosts(); // 목록 새로고침
+                // 낙관적 업데이트 (다시 불러오기보다 빠름)
+                setPosts(prev => prev.filter(post => post.id !== postId));
             } catch (error) {
                 console.error("게시글 삭제에 실패했습니다.", error);
                 alert("게시글 삭제에 실패했습니다.");
@@ -61,83 +67,261 @@ function Community() {
         }
     };
 
-    // 로딩 중일 때 스피너 표시
-    if (isLoading) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-                <CircularProgress />
-            </Box>
-        );
-    }
-
     return (
         <Box>
-            <PageTitle title="📢 커뮤니티" />
-            <Button component={RouterLink} to="/community/new" variant="contained" sx={{ mb: 2 }}>
-                새 글 작성하기
-            </Button>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
+                <Box>
+                    <Typography variant="h4" fontWeight="bold" color="text.primary">
+                        커뮤니티
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                        자유롭게 이야기를 나누는 공간입니다.
+                    </Typography>
+                </Box>
+                <Button 
+                    component={RouterLink} 
+                    to="/community/new" 
+                    variant="contained" 
+                    startIcon={<CreateRoundedIcon />}
+                    size="large"
+                    sx={{ px: 3 }}
+                >
+                    글쓰기
+                </Button>
+            </Stack>
 
-            {/* --- 게시글 목록 (테이블 형태) --- */}
-            <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                    <TableHead>
-                        {/* TableRow에 연한 배경색을 추가합니다 (예: grey.100) */}
-                        <TableRow sx={{ backgroundColor: 'grey.100' }}> 
-                            {/* TableCell에 굵은 글꼴(fontWeight: 'bold') 스타일을 적용합니다 */}
-                            <TableCell sx={{ width: '60%', fontWeight: 'bold' }}>제목</TableCell>
-                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>작성자</TableCell>
-                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>작성일</TableCell>
-                            {isAdmin && <TableCell align="right" sx={{ fontWeight: 'bold' }}>관리</TableCell>}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {Array.isArray(posts) && posts.length > 0 ? posts.map((post) => (
-                            <TableRow
-                                key={post.id}
-                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                            >
-                                <TableCell component="th" scope="row">
-                                    <Link
-                                        component={RouterLink}
-                                        to={`/community/${post.id}`}
-                                        sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { textDecoration: 'underline' } }}
-                                    >
-                                        {post.title}
-                                    </Link>
-                                </TableCell>
-                                <TableCell align="right">{post.display_name}</TableCell>
-                                <TableCell align="right">{new Date(post.created_at).toLocaleDateString()}</TableCell>
-                                {/* 관리자일 때만 삭제 버튼 표시 */}
-                                {isAdmin && (
-                                    <TableCell align="right">
-                                        <IconButton
-                                            size="small"
-                                            color="error"
-                                            onClick={() => handlePostDelete(post.id)}
-                                            aria-label="delete post"
+            {isLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+                    <CircularProgress />
+                </Box>
+            ) : (
+                <TableContainer component={Paper} sx={{ overflow: 'hidden' }}> {/* Paper 스타일은 theme.js에서 자동 적용 */}
+                    <Table sx={{ minWidth: 650 }} aria-label="community table">
+                        <TableHead>
+                            <TableRow sx={{ bgcolor: 'background.default' }}> {/* 헤더 배경색 변경 */}
+                                <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary', pl: 3 }}>제목</TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>작성자</TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.secondary', pr: 3 }}>작성일</TableCell>
+                                {isAdmin && <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.secondary', width: 80 }}>관리</TableCell>}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {Array.isArray(posts) && posts.length > 0 ? posts.map((post) => (
+                                <TableRow
+                                    key={post.id}
+                                    hover // 마우스 호버 효과
+                                    sx={{ 
+                                        '&:last-child td, &:last-child th': { border: 0 },
+                                        cursor: 'pointer',
+                                        textDecoration: 'none',
+                                        transition: 'background-color 0.2s'
+                                    }}
+                                >
+                                    <TableCell component="th" scope="row" sx={{ pl: 3 }}>
+                                        <Link
+                                            component={RouterLink}
+                                            to={`/community/${post.id}`}
+                                            underline="none"
+                                            color="text.primary"
+                                            fontWeight="500"
+                                            sx={{ 
+                                                display: 'block',
+                                                width: '100%',
+                                                fontSize: '1rem',
+                                                '&:hover': { color: 'primary.main' }
+                                            }}
                                         >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
+                                            {post.title}
+                                        </Link>
                                     </TableCell>
-                                )}
-                            </TableRow>
-                        )) : (
-                            // 게시글이 없을 때
-                            <TableRow>
-                                <TableCell colSpan={isAdmin ? 4 : 3} align="center">
-                                    아직 작성된 게시글이 없습니다.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            {/* --- 여기까지 --- */}
+                                    <TableCell align="right">
+                                        <Chip 
+                                            label={post.display_name || '익명'} 
+                                            size="small" 
+                                            variant="outlined" 
+                                            sx={{ borderColor: 'divider', borderRadius: 1 }}
+                                        />
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ color: 'text.secondary', pr: 3 }}>
+                                        {new Date(post.created_at).toLocaleDateString()}
+                                    </TableCell>
+                                    
+                                    {isAdmin && (
+                                        <TableCell align="right">
+                                            <IconButton
+                                                size="small"
+                                                color="error"
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // 행 클릭 이벤트 전파 방지
+                                                    handlePostDelete(post.id);
+                                                }}
+                                            >
+                                                <DeleteRoundedIcon fontSize="small" />
+                                            </IconButton>
+                                        </TableCell>
+                                    )}
+                                </TableRow>
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={isAdmin ? 4 : 3} align="center" sx={{ py: 8 }}>
+                                        <Typography color="text.secondary">아직 작성된 게시글이 없습니다.</Typography>
+                                        <Button component={RouterLink} to="/community/new" sx={{ mt: 1 }}>
+                                            첫 번째 글을 작성해보세요!
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            )}
         </Box>
     );
 }
 
 export default Community;
+
+
+// import React, { useState, useEffect, useContext } from 'react';
+// import { Link as RouterLink } from 'react-router-dom'; // RouterLink로 이름 변경
+// import axiosInstance from '../api/axiosInstance';
+// import PageTitle from '../components/PageTitle';
+// import { AuthContext } from '../context/AuthContext';
+
+// // MUI 컴포넌트 import
+// import {
+//     Box,
+//     Button,
+//     Paper,
+//     Typography,
+//     IconButton,
+//     Table,
+//     TableBody,
+//     TableCell,
+//     TableContainer,
+//     TableHead,
+//     TableRow,
+//     CircularProgress, // 로딩 스피너
+//     Link // MUI Link (제목에 사용)
+// } from '@mui/material';
+// import DeleteIcon from '@mui/icons-material/Delete';
+
+// function Community() {
+//     const [posts, setPosts] = useState([]);
+//     const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
+//     const { user } = useContext(AuthContext);
+
+//     // 관리자인지 확인하는 변수
+//     const isAdmin = user && (user.is_staff || user.is_superuser);
+
+//     const fetchPosts = async () => {
+//         setIsLoading(true);
+//         try {
+//             const response = await axiosInstance.get('community/posts/');
+//             const fetchedPosts = response.data?.results ?? (Array.isArray(response.data) ? response.data : []);
+//             setPosts(fetchedPosts);
+//         } catch (error) {
+//             console.error("게시글을 불러오는 데 실패했습니다.", error);
+//             setPosts([]);
+//         } finally {
+//             setIsLoading(false); // 로딩 종료
+//         }
+//     };
+
+//     useEffect(() => {
+//         fetchPosts();
+//     }, []);
+
+//     const handlePostDelete = async (postId) => {
+//         if (window.confirm("정말 이 게시글을 삭제하시겠습니까? (관리자 권한)")) {
+//             try {
+//                 await axiosInstance.delete(`/community/posts/${postId}/`);
+//                 alert("게시글이 삭제되었습니다.");
+//                 fetchPosts(); // 목록 새로고침
+//             } catch (error) {
+//                 console.error("게시글 삭제에 실패했습니다.", error);
+//                 alert("게시글 삭제에 실패했습니다.");
+//             }
+//         }
+//     };
+
+//     // 로딩 중일 때 스피너 표시
+//     if (isLoading) {
+//         return (
+//             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+//                 <CircularProgress />
+//             </Box>
+//         );
+//     }
+
+//     return (
+//         <Box>
+//             <PageTitle title="📢 커뮤니티" />
+//             <Button component={RouterLink} to="/community/new" variant="contained" sx={{ mb: 2 }}>
+//                 새 글 작성하기
+//             </Button>
+
+//             {/* --- 게시글 목록 (테이블 형태) --- */}
+//             <TableContainer component={Paper}>
+//                 <Table sx={{ minWidth: 650 }} aria-label="simple table">
+//                     <TableHead>
+//                         {/* TableRow에 연한 배경색을 추가합니다 (예: grey.100) */}
+//                         <TableRow sx={{ backgroundColor: 'grey.100' }}> 
+//                             {/* TableCell에 굵은 글꼴(fontWeight: 'bold') 스타일을 적용합니다 */}
+//                             <TableCell sx={{ width: '60%', fontWeight: 'bold' }}>제목</TableCell>
+//                             <TableCell align="right" sx={{ fontWeight: 'bold' }}>작성자</TableCell>
+//                             <TableCell align="right" sx={{ fontWeight: 'bold' }}>작성일</TableCell>
+//                             {isAdmin && <TableCell align="right" sx={{ fontWeight: 'bold' }}>관리</TableCell>}
+//                         </TableRow>
+//                     </TableHead>
+//                     <TableBody>
+//                         {Array.isArray(posts) && posts.length > 0 ? posts.map((post) => (
+//                             <TableRow
+//                                 key={post.id}
+//                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+//                             >
+//                                 <TableCell component="th" scope="row">
+//                                     <Link
+//                                         component={RouterLink}
+//                                         to={`/community/${post.id}`}
+//                                         sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { textDecoration: 'underline' } }}
+//                                     >
+//                                         {post.title}
+//                                     </Link>
+//                                 </TableCell>
+//                                 <TableCell align="right">{post.display_name}</TableCell>
+//                                 <TableCell align="right">{new Date(post.created_at).toLocaleDateString()}</TableCell>
+//                                 {/* 관리자일 때만 삭제 버튼 표시 */}
+//                                 {isAdmin && (
+//                                     <TableCell align="right">
+//                                         <IconButton
+//                                             size="small"
+//                                             color="error"
+//                                             onClick={() => handlePostDelete(post.id)}
+//                                             aria-label="delete post"
+//                                         >
+//                                             <DeleteIcon fontSize="small" />
+//                                         </IconButton>
+//                                     </TableCell>
+//                                 )}
+//                             </TableRow>
+//                         )) : (
+//                             // 게시글이 없을 때
+//                             <TableRow>
+//                                 <TableCell colSpan={isAdmin ? 4 : 3} align="center">
+//                                     아직 작성된 게시글이 없습니다.
+//                                 </TableCell>
+//                             </TableRow>
+//                         )}
+//                     </TableBody>
+//                 </Table>
+//             </TableContainer>
+//             {/* --- 여기까지 --- */}
+//         </Box>
+//     );
+// }
+
+// export default Community;
 
 
 

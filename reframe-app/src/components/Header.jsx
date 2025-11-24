@@ -51,7 +51,7 @@ function Header() {
                 sx={{
                   // '&.Mui-disabled'는 '이 컴포넌트가 disabled 상태일 때'를 의미합니다.
                   '&.Mui-disabled': {
-                    color: 'rgba(255, 255, 255, 0.5)' // 흰색에 50% 투명도를 줍니다.
+                    color: 'rgba(168, 37, 37, 0.5)' // 흰색에 50% 투명도를 줍니다.
                   }
                 }}
               >
@@ -70,7 +70,7 @@ function Header() {
                 // 여기도 동일하게 수정합니다.
                 sx={{
                   '&.Mui-disabled': {
-                    color: 'rgba(255, 255, 255, 0.5)'
+                    color: 'rgba(168, 37, 37, 0.5)'
                   }
                 }}
               >
